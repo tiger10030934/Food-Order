@@ -42,7 +42,8 @@
         <!-- 其他 / 自訂餐點區域 -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
           <span class="block font-semibold text-slate-700 mb-1">✨ 其他想吃的</span>
-          <input type="text" id="customItem" placeholder="上面沒有想吃的嗎？請輸入其他品項..." 
+          <!-- 提示文字已簡化 -->
+          <input type="text" id="customItem" placeholder="請輸入其他品項" 
                  class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
         </div>
       </div>
@@ -53,7 +54,7 @@
         載入中...
       </button>
 
-      <!-- 🆕 點餐成功明細橫幅 (放在最底部、按鈕下方) -->
+      <!-- 點餐成功明細橫幅 (放在最底部、按鈕下方) -->
       <div id="successMessage" class="hidden p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
         <div class="text-emerald-800 font-bold text-center">🎉 點餐成功！已為你記錄以下內容：</div>
         <div id="successDetails" class="text-sm text-emerald-700 bg-white p-3 rounded-lg border border-emerald-100 space-y-1">
@@ -133,7 +134,7 @@
       
       const name = document.getElementById('name').value.trim();
       const selectedItems = [];
-      const displaySummary = []; // 用於畫面上呈現的明細
+      const displaySummary = [];
 
       // 收集所有勾選的水果及其數量
       const fruitRows = document.querySelectorAll('#fruitList > div');
@@ -177,21 +178,17 @@
           body: JSON.stringify({ name: name, items: selectedItems })
         });
 
-        // 填入剛剛點選的明細內容
+        // 填入明細
         successDetails.innerHTML = `
           <div><b>點餐人：</b>${name}</div>
           <div class="mt-1"><b>已送出品項：</b></div>
           <div class="pl-2">${displaySummary.join('<br>')}</div>
         `;
 
-        // 顯示在最底部的成功橫幅
         successMsg.classList.remove('hidden');
-        
-        // 重置表單
         document.getElementById('orderForm').reset();
         document.querySelectorAll('.qty-select').forEach(el => el.classList.add('hidden'));
 
-        // 自動平滑捲動到最底部讓使用者一眼看到成功明細
         successMsg.scrollIntoView({ behavior: 'smooth' });
 
       } catch (err) {
