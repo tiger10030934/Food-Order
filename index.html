@@ -1,1 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>打球點餐系統</title>
+  <!-- 引入 Tailwind CSS 美化介面 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-5 flex justify-center min-h-screen items-center">
 
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md">
+    <h1 class="text-2xl font-bold text-center text-slate-800 mb-6">🏀 今日免費點餐系統</h1>
+    
+    <form id="orderForm" class="space-y-5">
+      <!-- 填寫姓名 -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-1">你的名字 / 綽號</label>
+        <input type="text" id="name" required placeholder="請輸入名字" 
+               class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      </div>
+
+      <!-- 品項選擇 (可依需求自行增減) -->
+      <div>
+        <label class="block text-gray-700 font-medium mb-2">選擇今日餐點/水果</label>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" name="item" value="🍌 香蕉" class="w-5 h-5 accent-blue-600">
+            <span class="text-gray-700">🍌 香蕉</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" name="item" value="🍎 蘋果" class="w-5 h-5 accent-blue-600">
+            <span class="text-gray-700">🍎 蘋果</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" name="item" value="🍱 雞肉便當" class="w-5 h-5 accent-blue-600">
+            <span class="text-gray-700">🍱 雞肉便當</span>
+          </label>
+          <label class="flex items-center gap-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
+            <input type="checkbox" name="item" value="⚡ 運動飲料" class="w-5 h-5 accent-blue-600">
+            <span class="text-gray-700">⚡ 運動飲料</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 送出按鈕 -->
+      <button type="submit" id="submitBtn" 
+              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200">
+        送出點餐
+      </button>
+    </form>
+  </div>
+
+  <script>
+    // ⚠️ 記得把這裡替換成你的 Google Apps Script Web API 網址
+    const SCRIPT_URL = 'https://script.google.com/macros/s/你的API關鍵字/exec';
+
+    document.getElementById('orderForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('name').value.trim();
+      const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
+                                 .map(el => el.value);
+
+      if (selectedItems.length === 0) {
+        alert('請至少選擇一項餐點或水果！');
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerText = '傳送中...';
+
+      try {
+        await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'no-cors', // 避開跨網域限制
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: name, items: selectedItems })
+        });
+
+        alert('點餐成功！已經幫你記下來囉！');
+        document.getElementById('orderForm').reset();
+      } catch (err) {
+        alert('點餐失敗，請稍後再試。');
+        console.error(err);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '送出點餐';
+      }
+    });
+  </script>
+</body>
+</html>
