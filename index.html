@@ -12,6 +12,11 @@
   <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md my-6">
     <h1 class="text-2xl font-bold text-center text-slate-800 mb-6">👦 迪哥點餐系統</h1>
     
+    <!-- 成功提示橫幅 (預設隱藏) -->
+    <div id="successMessage" class="hidden mb-6 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl text-center font-medium">
+      🎉 點餐成功！已經幫你記下來囉！
+    </div>
+
     <form id="orderForm" class="space-y-6">
       <!-- 填寫姓名 -->
       <div>
@@ -24,69 +29,72 @@
       <div>
         <label class="block text-gray-700 font-medium mb-2 text-lg">選擇今日餐點</label>
         
-        <!-- 水果區域 -->
+        <!-- 水果區域 (由 API 動態渲染) -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
           <span class="block font-semibold text-slate-700 mb-2">🍎 水果專區</span>
-          <div class="grid grid-cols-1 gap-2">
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🍌 香蕉" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🍌 香蕉</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🍎 樂淇蘋果" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🍎 樂淇蘋果</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🍎 艾菲蘋果" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🍎 艾菲蘋果</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🫐 藍莓" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🫐 藍莓</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🥑 酪梨" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🥑 酪梨</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🍊 茂谷柑" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🍊 茂谷柑</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🟡 百香果" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🟡 百香果</span>
-            </label>
-            <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-              <input type="checkbox" name="item" value="🍇 綠無籽葡萄" class="w-5 h-5 accent-blue-600">
-              <span class="text-gray-700">🍇 綠無籽葡萄</span>
-            </label>
+          
+          <!-- 載入中狀態 -->
+          <div id="loadingText" class="text-gray-500 text-sm p-2 text-center">
+            ⏳ 正在載入今日水果清單...
+          </div>
+
+          <!-- 動態水果勾選清單 -->
+          <div id="fruitList" class="grid grid-cols-1 gap-2 hidden">
+            <!-- 勾選項目會由 JavaScript 自動塞入這裡 -->
           </div>
         </div>
-
-        <!-- 其他餐點區域（若之後有其他餐點或便當可以加在這裡） -->
-        <!-- 
-        <div class="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
-          <span class="block font-semibold text-slate-700 mb-2">🍱 主餐 / 飲料專區</span>
-          <label class="flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer">
-            <input type="checkbox" name="item" value="🍱 雞肉便當" class="w-5 h-5 accent-blue-600">
-            <span class="text-gray-700">🍱 雞肉便當</span>
-          </label>
-        </div>
-        -->
       </div>
 
       <!-- 送出按鈕 -->
-      <button type="submit" id="submitBtn" 
-              class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
-        送出點餐
+      <button type="submit" id="submitBtn" disabled
+              class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-3 rounded-lg transition duration-200 shadow-md">
+        載入中...
       </button>
     </form>
   </div>
 
   <script>
-    // ⚠️ 記得替換成你的 Google Apps Script Web API 網址
-    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHcd8e8UXfh-vCNoGfr5aNJ0Y33EdmT4kydPgTSYKwBx5o54R-QBw_j4QZ1gL-RwlNWw/exec';
+    // ⚠️ 請替換成你的 Google Apps Script Web API 網址
+    const SCRIPT_URL = 'https://script.google.com/macros/s/你的API關鍵字/exec';
 
+    // 頁面載入時，自動去 Google 試算表抓取「今天有勾選的水果」
+    window.addEventListener('DOMContentLoaded', async () => {
+      const fruitList = document.getElementById('fruitList');
+      const loadingText = document.getElementById('loadingText');
+      const submitBtn = document.getElementById('submitBtn');
+
+      try {
+        const response = await fetch(SCRIPT_URL);
+        const result = await response.json();
+
+        if (result.status === 'success' && result.items.length > 0) {
+          loadingText.classList.add('hidden');
+          fruitList.innerHTML = ''; // 清空載入中狀態
+
+          // 動態生成水果選項
+          result.items.forEach(item => {
+            const label = document.createElement('label');
+            label.className = 'flex items-center gap-3 p-2.5 bg-white border rounded-lg hover:bg-slate-100 cursor-pointer';
+            label.innerHTML = `
+              <input type="checkbox" name="item" value="${item}" class="w-5 h-5 accent-blue-600">
+              <span class="text-gray-700">${item}</span>
+            `;
+            fruitList.appendChild(label);
+          });
+
+          fruitList.classList.remove('hidden');
+          submitBtn.disabled = false;
+          submitBtn.innerText = '送出點餐';
+        } else {
+          loadingText.innerText = '⚠️ 今天迪哥沒有提供水果，或菜單未設定喔！';
+        }
+      } catch (err) {
+        console.error(err);
+        loadingText.innerText = '⚠️ 無法載入菜單，請重新整理試試看！';
+      }
+    });
+
+    // 表單送出處理
     document.getElementById('orderForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       
@@ -100,8 +108,11 @@
       }
 
       const btn = document.getElementById('submitBtn');
+      const successMsg = document.getElementById('successMessage');
+      
       btn.disabled = true;
       btn.innerText = '傳送中...';
+      successMsg.classList.add('hidden');
 
       try {
         await fetch(SCRIPT_URL, {
@@ -111,7 +122,7 @@
           body: JSON.stringify({ name: name, items: selectedItems })
         });
 
-        alert('點餐成功！已經幫你記下來囉！');
+        successMsg.classList.remove('hidden');
         document.getElementById('orderForm').reset();
       } catch (err) {
         alert('點餐失敗，請稍後再試。');
