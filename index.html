@@ -26,8 +26,8 @@
       </div>
 
       <!-- 選擇今日餐點 -->
-      <div>
-        <label class="block text-gray-700 font-medium mb-2 text-lg">選擇今日餐點</label>
+      <div class="space-y-4">
+        <label class="block text-gray-700 font-medium text-lg">選擇今日餐點</label>
         
         <!-- 水果區域 (由 API 動態渲染) -->
         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
@@ -43,6 +43,14 @@
             <!-- 勾選項目會由 JavaScript 自動塞入這裡 -->
           </div>
         </div>
+
+        <!-- 🆕 其他 / 自訂餐點區域 -->
+        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+          <span class="block font-semibold text-slate-700 mb-1">✨ 其他想吃的</span>
+          <input type="text" id="customItem" placeholder="上面沒有想吃的嗎？請輸入其他品項..." 
+                 class="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+          <p class="text-xs text-gray-400">若有其他想點的東西可直接輸入於此，會與勾選項目一同送出。</p>
+        </div>
       </div>
 
       <!-- 送出按鈕 -->
@@ -54,7 +62,7 @@
   </div>
 
   <script>
-    // ⚠️ 請替換成你的 Google Apps Script Web API 網址
+    // ⚠️ 記得確認這裡的 SCRIPT_URL 是否正確
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxHcd8e8UXfh-vCNoGfr5aNJ0Y33EdmT4kydPgTSYKwBx5o54R-QBw_j4QZ1gL-RwlNWw/exec';
 
     // 頁面載入時，自動去 Google 試算表抓取「今天有勾選的水果」
@@ -69,7 +77,7 @@
 
         if (result.status === 'success' && result.items.length > 0) {
           loadingText.classList.add('hidden');
-          fruitList.innerHTML = ''; // 清空載入中狀態
+          fruitList.innerHTML = ''; 
 
           // 動態生成水果選項
           result.items.forEach(item => {
@@ -87,6 +95,8 @@
           submitBtn.innerText = '送出點餐';
         } else {
           loadingText.innerText = '⚠️ 今天迪哥沒有提供水果，或菜單未設定喔！';
+          submitBtn.disabled = false;
+          submitBtn.innerText = '送出點餐 (僅送出其他自訂項目)';
         }
       } catch (err) {
         console.error(err);
@@ -99,11 +109,20 @@
       e.preventDefault();
       
       const name = document.getElementById('name').value.trim();
+      
+      // 收集所有勾選的水果
       const selectedItems = Array.from(document.querySelectorAll('input[name="item"]:checked'))
                                  .map(el => el.value);
 
+      // 收集使用者在「其他」欄位輸入的內容
+      const customText = document.getElementById('customItem').value.trim();
+      if (customText) {
+        selectedItems.push(`其他：${customText}`); // 加上標籤讓試算表更好辨識
+      }
+
+      // 防呆：如果水果沒勾，且「其他」也沒填
       if (selectedItems.length === 0) {
-        alert('請至少選擇一項餐點或水果！');
+        alert('請至少選擇一項水果，或在其他欄位輸入想吃的東西！');
         return;
       }
 
